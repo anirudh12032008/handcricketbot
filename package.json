@@ -1,0 +1,19 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@keyv/sqlite": "^4.0.5",
+    "@slack/bolt": "^4.4.0",
+    "chrono-node": "^2.8.3",
+    "dotenv": "^17.2.0",
+    "keyv": "^4.5.2"
+  }
+}
