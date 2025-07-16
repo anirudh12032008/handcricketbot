@@ -11,13 +11,14 @@ const db = new Keyv({
   store: new KeyvSqlite({ uri: "sqlite://db.sqlite" }),
 });
 
-const game = (userId) => ({
+const newGame = (userId) => ({
   score: 0,
   balls: 0,
   isOut: false,
   history: [],
   player: userId,
 });
+
 
 async function comm(p, b, total, balls, isOut) {
   const prompt = `
@@ -80,21 +81,21 @@ client.on("messageCreate", async (message) => {
   const username = message.author.username;
 
   const gameId = `dc-${channel.id}-${userId}`;
-  let game = await db.get(gameId);
+  let currgame = await db.get(gameId);
 
   if (content === "!start") {
-    await db.set(gameId, game(userId));
+    await db.set(gameId, newGame(userId));
     await channel.send(`🏏 ${username} just walked in! Type \`!play <0-6>\` to begin your downfall. 💀`);
     return;
   }
 
-  if (!game) return;
+  if (!currgame) return;
 
   if (content === "!score") {
-    const history = game.history.map((b, i) => `Ball ${i + 1}: You - ${b.user}, Me - ${b.bot}`).join("\n");
+    const history = currgame.history.map((b, i) => `Ball ${i + 1}: You - ${b.user}, Me - ${b.bot}`).join("\n");
     await channel.send(`📊 *Scorecard:*
 ${history || "No shots yet, scaredy cat!"}
-🏏 *Total:* ${game.score} in ${game.balls} balls.`);
+🏏 *Total:* ${currgame.score} in ${currgame.balls} balls.`);
     return;
   }
 
@@ -105,36 +106,37 @@ ${history || "No shots yet, scaredy cat!"}
       return;
     }
 
-    if (game.isOut) {
+    if (currgame.isOut) {
       await channel.send("💀 You're already OUT, rookie. Start a new game with `!start` if you dare.");
       return;
     }
 
     const botNum = Math.floor(Math.random() * 7);
     const isOut = botNum === num;
-    game.balls++;
-    game.history.push({ user: num, bot: botNum });
+    currgame.balls++;
+    currgame.history.push({ user: num, bot: botNum });
 
-    let msg = `Ball ${game.balls}: You - **${num}**, Me - **${botNum}**`;
+    let msg = `Ball ${currgame.balls}: You - **${num}**, Me - **${botNum}**`;
 
     if (isOut) {
-      game.isOut = true;
-      const summary = game.history.map((b, i) => `Ball ${i + 1}: You - ${b.user}, Me - ${b.bot}`).join("\n");
-      const finalRoast = await comm(num, botNum, game.score, game.balls, true);
-      msg += `\n *OUT!* Final Score-- **${game.score}** in **${game.balls}** balls.`;
+      currgame.isOut = true;
+      const summary = currgame.history.map((b, i) => `Ball ${i + 1}: You - ${b.user}, Me - ${b.bot}`).join("\n");
+      const finalRoast = await comm(num, botNum, currgame.score, currgame.balls, true);
+      msg += `\n *OUT!* Final Score-- **${currgame.score}** in **${currgame.balls}** balls.`;
       msg += `\n\n *Summary--*\n${summary}`;
       if (finalRoast) msg += `\n *bowler---* ${finalRoast}`;
     } else {
-      game.score += num;
-      const roast = await comm(num, botNum, game.score, game.balls, false);
-      msg += `\n Runs: **${num}** | Total-- **${game.score}**`;
+      currgame.score += num;
+      const roast = await comm(num, botNum, currgame.score, currgame.balls, false);
+      msg += `\n Runs: **${num}** | Total-- **${currgame.score}**`;
       if (roast) msg += `\n *bowler:* ${roast}`;
       msg += `\nPlay next with \`!play <0-6>\``;
     }
 
-    await db.set(gameId, game);
+    await db.set(gameId, currgame);
     await channel.send(msg);
   }
+
 });
 
 client.once("ready", () => {
