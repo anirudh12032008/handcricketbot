@@ -9,5 +9,5 @@ use @handcricket Start to start playing
 server to test - [server](https://discord.gg/PsTDSEMZWR)
 use !start to play
 
-## Telegram - @handcricketanirudhbot
+## Telegram - https://t.me/handcricketanirudhbot
 use /start
